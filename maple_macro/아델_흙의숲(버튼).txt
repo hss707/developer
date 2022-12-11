@@ -1,0 +1,446 @@
+#include "Keyboard.h"
+/**
+ * 6.인피니트 
+ * 점프 대쉬
+ * 버프 버튼            650 ~ 700
+ * 점프, 오른쪽 화살표   150 ~ 200
+ * 더플점프              50 ~ 200
+ * 
+ * 위쪽으로 이동하기 스킬
+ * 점프                  50 ~  80
+ * 
+ * 인피니트 시전시간 1.1초 
+ */
+const int button = 7;
+ 
+int flag = 1;
+int count = 0;
+
+unsigned long worldSkill_count;   // 인피니트_쿨타임 계산 변수
+long worldSkill_RandSec;           // 인피니트_쿨타임 랜덤 배정 변수
+
+unsigned long buff_01_count;   // 버프 01 쿨타임 계산 변수
+int buff_01_RandSec;           // 버프 01 쿨타임 랜덤 배정 변수
+
+unsigned long buff_02_count;   // 버프 02 쿨타임 계산 변수
+int buff_02_RandSec;           // 버프 02 쿨타임 랜덤 배정 변수
+
+unsigned long order_count;   // 오더 쿨타임 계산 변수
+long order_RandSec;           // 버프 02 쿨타임 랜덤 배정
+
+
+const char worldSkill_command = 'q';            // 인피니티 키
+const char buff_01_command = '2';               // 첫번째 버프 단축키
+const char buff_02_command = '3';               // 두번째 버프 단축키
+const char buff_03_command = '4';               // 세번째 버프 단축키
+const char divide_command_01 = KEY_LEFT_CTRL;   // 디바이드 01 키
+const char divide_command_02 = 'a';             // 디바이드 02 키
+const char divide_command_03 = 'z';             // 디바이드 03 키
+const char imperial_command = 'd';              // 임페일 커맨드키
+const char rezonence_command = 'f';             // 레조넌스 커맨드 키
+const char order_command = 's';                 // 오더 커맨드 키
+const char jump = KEY_LEFT_ALT;                 // 점프키
+
+const long worldSkill_CoolTime_Min = 180000;
+const long worldSkill_CoolTime_Max = 185000;
+
+const long order_CoolTime_Min = 20000;
+const long order_CoolTime_Max = 40000;
+
+
+void worldSkill();
+void buff01();
+void buff02();
+void buff03();
+void frontJumpDash();
+void backendJumpDash();
+void upSideSkill();
+void attack();
+void inter();
+
+void setup() {
+  Keyboard.begin();
+  Serial.begin(9600);
+  randomSeed(analogRead(0));
+  
+  pinMode(button,INPUT);
+  attachInterrupt(digitalPinToInterrupt(button), inter, RISING);
+  
+  worldSkill_count = millis();
+  worldSkill_RandSec = random(worldSkill_CoolTime_Min, worldSkill_CoolTime_Max);
+
+  order_count = millis();
+  order_RandSec = random(order_CoolTime_Min, order_CoolTime_Max);
+
+  
+  worldSkill();
+  worldSkill_RandSec = random(worldSkill_CoolTime_Min, worldSkill_CoolTime_Max);
+  worldSkill_count = millis();
+  buff01();
+  buff02();
+  buff03();
+  
+}
+
+void worldSkill(){
+  Keyboard.press(worldSkill_command);
+  int randNumber = random(1000,1200);
+  delay(randNumber);
+  
+  Keyboard.release(worldSkill_command);
+  randNumber = random(0,30);
+  delay(randNumber);
+}
+// 버프01 실행 함수
+void buff01(){
+  Keyboard.press(buff_01_command);
+  int randNumber = random(1000,1200);
+  delay(randNumber);
+  Keyboard.release(buff_01_command);
+  randNumber = random(0,30);
+  delay(randNumber);
+}
+
+// 버프02 실행 함수
+void buff02(){
+  Keyboard.press(buff_02_command);
+  int randNumber = random(1000,1200);
+  delay(randNumber);
+  Keyboard.release(buff_02_command);
+  randNumber = random(0,30);
+  delay(randNumber);
+}
+
+
+// 버프03 실행 함수
+void buff03(){
+  Keyboard.press(buff_03_command);
+  int randNumber = random(1000,1200);
+  delay(randNumber);
+  Keyboard.release(buff_03_command);
+  randNumber = random(0,30);
+  delay(randNumber);
+}
+// 오른쪽방향으로 점프 대쉬
+void frontJumpDash(){
+  Keyboard.press(KEY_RIGHT_ARROW);
+  int randNumber = random(20,40);
+  delay(randNumber);
+  
+  Keyboard.press(jump);
+  randNumber = random(20,30);
+  delay(randNumber);
+  
+  Keyboard.release(jump);
+  randNumber = random(85,100);
+  delay(randNumber);
+  Serial.print("jump_delay:");
+  Serial.println(randNumber);
+
+  Keyboard.press('x');
+  randNumber = random(50,140);
+  delay(randNumber);
+  Keyboard.release('x');
+  randNumber = random(40,60);
+
+  Keyboard.release(KEY_RIGHT_ARROW);
+  randNumber = random(20,30);
+  delay(randNumber);
+
+  attack();
+
+  randNumber = random(130,145);
+  delay(randNumber);
+}
+
+// 왼쪽방향으로 점프 대쉬
+void backendJumpDash(){
+  Keyboard.press(KEY_LEFT_ARROW);
+  int randNumber = random(20,40);
+  delay(randNumber);
+  
+  Keyboard.press(jump);
+  randNumber = random(20,35);
+  delay(randNumber);
+  
+  Keyboard.release(jump);
+  randNumber = random(85,100);
+  delay(randNumber);
+  Serial.print("jump_delay:");
+  Serial.println(randNumber);
+
+  Keyboard.press('x');
+  randNumber = random(50,140);
+  delay(randNumber);
+  Keyboard.release('x');
+  randNumber = random(40,60);
+
+  Keyboard.release(KEY_LEFT_ARROW);
+  randNumber = random(20,30);
+  delay(randNumber);
+  
+  attack();
+}
+
+void upSideSkill(){
+  Keyboard.press(KEY_RIGHT_ARROW);
+  int randNumber = random(50,65);
+  delay(randNumber);
+
+  Keyboard.release(KEY_RIGHT_ARROW);
+  randNumber = random(30,35);
+  delay(randNumber);
+  
+  Keyboard.press(jump);
+  randNumber = random(45,57);
+  delay(randNumber);
+
+  Keyboard.release(jump);
+  randNumber = random(110,120);
+  delay(randNumber);
+
+  Keyboard.press(KEY_UP_ARROW);
+  randNumber = random(50,60);
+  delay(randNumber);
+
+  Keyboard.press(jump);
+  randNumber = random(180,230);
+  delay(randNumber);
+ 
+  Keyboard.release(jump);
+  randNumber = random(150,180);
+  delay(randNumber);
+  
+  attack();
+  
+  Keyboard.release(KEY_UP_ARROW);
+  randNumber = random(420,450);
+  delay(randNumber);
+
+}
+
+void downSideSkill(){
+  Keyboard.press(KEY_DOWN_ARROW);
+  int randNumber = random(20,40);
+  delay(randNumber);
+
+  Keyboard.press(imperial_command);
+  randNumber = random(200,220);
+  delay(randNumber);
+
+  
+  Keyboard.release(imperial_command);
+  randNumber = random(100,110);
+  delay(randNumber);
+
+  Keyboard.press(rezonence_command);
+  randNumber = random(200,220);
+  delay(randNumber);
+
+  
+  Keyboard.release(rezonence_command);
+  randNumber = random(100,110);
+  delay(randNumber);
+
+  
+  Keyboard.release(KEY_DOWN_ARROW);
+  randNumber = random(300,310);
+  delay(randNumber);
+  
+}
+
+void pattern01(){
+  Keyboard.press(KEY_LEFT_ARROW);
+  int randNumber = random(30,45);
+  delay(randNumber);
+
+  Keyboard.release(KEY_LEFT_ARROW);
+  randNumber = random(20,30);
+  delay(randNumber);
+  
+  attack();
+}
+
+void attack(){
+  int randNum = random(0,3);
+  int randNumber = 0;
+  
+  switch(randNum){
+    case 0:
+      Keyboard.press(divide_command_01);
+      randNumber = random(13,30);
+      delay(randNumber);
+    
+      Keyboard.release(divide_command_01);
+      break;
+    case 1:
+      Keyboard.press(divide_command_02);
+      randNumber = random(13,30);
+      delay(randNumber);
+    
+      Keyboard.release(divide_command_02);
+      break;
+    case 2:
+      Keyboard.press(divide_command_03);
+      randNumber = random(13,30);
+      delay(randNumber);
+    
+      Keyboard.release(divide_command_03);
+      break;
+  }
+    if(millis() - order_count > order_RandSec){
+      randNumber = random(13,30);
+      delay(randNumber);
+      
+      Keyboard.press(order_command);
+      randNumber = random(13,30);
+      delay(randNumber);
+    
+      Keyboard.release(order_command);
+      
+      order_count = millis();
+      order_RandSec = random(order_CoolTime_Min, order_CoolTime_Max);
+    }
+  
+  randNumber = random(200,225);
+  delay(randNumber);
+}
+
+
+
+
+void loop() {
+  if (Serial.available() > 0) {
+      Serial_read:
+      int data  = Serial.parseInt();
+      Serial.flush();
+      if(data == 1){
+        delay(1000);
+        flag = 1;
+        worldSkill();
+        worldSkill_RandSec = random(worldSkill_CoolTime_Min, worldSkill_CoolTime_Max);
+        worldSkill_count = millis();
+        buff01();
+        buff02();
+        buff03();
+      }else if(data == 2){
+        flag = 0;
+      }else if(data == 3){
+        delay(1000);
+        upSideSkill();
+      }else if(data == 4){
+        delay(1000);
+        frontJumpDash();
+        int randNumber = random(350,400);
+        delay(randNumber);
+        frontJumpDash();
+      }else if(data == 5){
+        delay(1000);
+        downSideSkill();
+      }
+  }
+  
+  if(flag){
+    Serial.flush();
+    int randNumber = 0;
+    if(millis() - worldSkill_count > worldSkill_RandSec){
+      // 인피니티
+      // 버프 01
+      // 버프 02 실행
+      if (Serial.available() > 0 || !flag) goto Serial_read;
+      worldSkill();
+      worldSkill_RandSec = random(worldSkill_CoolTime_Min, worldSkill_CoolTime_Max);
+      worldSkill_count = millis();
+      if (Serial.available() > 0 || !flag) goto Serial_read;
+      buff01();
+      if (Serial.available() > 0 || !flag) goto Serial_read;
+      buff02();
+      if (Serial.available() > 0 || !flag) goto Serial_read;
+      buff03();
+      if (Serial.available() > 0 || !flag) goto Serial_read;
+    }
+    
+    Serial.println("back");
+    for (int i = 0; i < 3; i++){
+      if (Serial.available() > 0 || !flag) goto Serial_read;
+      backendJumpDash();
+      if (Serial.available() > 0 || !flag) goto Serial_read;
+      randNumber = random(360,410);
+      delay(randNumber);
+      Serial.print(i); 
+      if (Serial.available() > 0 || !flag) goto Serial_read;
+    }
+    if (Serial.available() > 0 || !flag) goto Serial_read;
+    upSideSkill();
+    
+    if (Serial.available() > 0 || !flag) goto Serial_read;
+
+    for (int i = 0; i < 3; i++){
+      if (Serial.available() > 0 || !flag) goto Serial_read;
+      backendJumpDash();
+      if (Serial.available() > 0 || !flag) goto Serial_read;
+      if(i == 0){
+        if (Serial.available() > 0 || !flag) goto Serial_read;
+        randNumber = random(600,615);
+        delay(randNumber);
+        if (Serial.available() > 0 || !flag) goto Serial_read;
+      }else {
+        if (Serial.available() > 0 || !flag) goto Serial_read;
+        randNumber = random(360,410);
+        delay(randNumber);  
+        if (Serial.available() > 0 || !flag) goto Serial_read;
+      }
+      
+      Serial.print(i); 
+      if (Serial.available() > 0 || !flag) goto Serial_read;
+    }
+
+    Serial.println("front");
+    for (int i = 0; i < 3; i++){
+      if (Serial.available() > 0 || !flag) goto Serial_read;
+      frontJumpDash();
+      if (Serial.available() > 0 || !flag) goto Serial_read;
+      randNumber = random(360,410);
+      delay(randNumber);
+      Serial.print("count:");
+      Serial.println(i);
+      if (Serial.available() > 0 || !flag) goto Serial_read;
+    }
+    if (Serial.available() > 0 || !flag) goto Serial_read;
+    upSideSkill();
+    if (Serial.available() > 0 || !flag) goto Serial_read;
+    pattern01();
+    if (Serial.available() > 0 || !flag) goto Serial_read;
+    randNumber = random(400,440);
+    delay(randNumber);
+    if (Serial.available() > 0 || !flag) goto Serial_read;
+    downSideSkill();
+    if (Serial.available() > 0 || !flag) goto Serial_read;
+
+    
+    for (int i = 0; i < 3; i++){
+      if (Serial.available() > 0 || !flag) goto Serial_read;
+      frontJumpDash();
+      if (Serial.available() > 0 || !flag) goto Serial_read;
+      randNumber = random(360,410);
+      delay(randNumber);  
+      
+      Serial.print("count:");
+      Serial.println(i);
+      if (Serial.available() > 0 || !flag) goto Serial_read;
+    }
+    if (Serial.available() > 0 || !flag) goto Serial_read;
+    randNumber = random(100,150);
+    delay(randNumber);
+    if (Serial.available() > 0 || !flag) goto Serial_read;
+  }
+}
+
+void inter(){
+  Keyboard.releaseAll();
+  if(flag){
+    flag = 0;
+  }else {
+    flag = 1;
+  }
+}
