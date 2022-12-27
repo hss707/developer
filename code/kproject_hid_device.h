@@ -185,30 +185,10 @@ void led_purple()
   digitalWrite(BLUE_LED, HIGH);
 }
 
-void onTimer()
-{
-  ota_loop(); // WIFI 업로드 LOOP
-  usb_hid_process();
-
-  if ( macro_flag == true )
-  // 매크로 사용중이면
-  {
-    led_blue();
-  }
-  if ( keyboard_flag == true )
-  {
-    led_red();
-  }
-  if ( ( macro_flag == false ) && ( keyboard_flag == false ) )
-  {
-    led_off();
-  }
-}
-
+volatile int prev_green_btn_status;
+volatile int prev_red_btn_status;
 volatile unsigned long prev_green_key_changed;
 volatile unsigned long prev_red_key_changed;
-int prev_green_btn_status;
-int prev_red_btn_status;
 
 void IRAM_ATTR green_toggle()
 {
@@ -220,7 +200,6 @@ void IRAM_ATTR green_toggle()
     // debouncing을 위하여
     if ( ( millis() - prev_green_key_changed ) < 200 ) return;
 
-    prev_green_btn_status = green_btn_status;
     prev_green_key_changed = millis();
 
     // 구동 내용 ( CTRL + ESC )
@@ -230,7 +209,7 @@ void IRAM_ATTR green_toggle()
         // 매크로가 구동중이 아니었던 경우
       {
         //        function_key = true;
-        Serial.println("ALL MOUSE KEYBOARD OFF");
+        // Serial.println("ALL MOUSE KEYBOARD OFF");
         green_btn = false;
         red_btn = false;
         macro_flag = false;
@@ -267,12 +246,11 @@ void IRAM_ATTR red_toggle()
     // debouncing을 위하여
     if ( ( millis() - prev_red_key_changed ) < 200 ) return;
 
-    prev_red_btn_status = red_btn_status;
     prev_red_key_changed = millis();
 
     // 활성화
     // function_key = true;
-    Serial.println("ACTIVATE");
+    // Serial.println("ACTIVATE");
     green_btn = true;
     red_btn = false;
     keyboard_flag = true;
@@ -282,6 +260,40 @@ void IRAM_ATTR red_toggle()
     macro_status = 0; // 일시 정지
     macro_flag = false;
     force_releaseall();
+  }
+}
+
+void onTimer()
+{
+  ota_loop(); // WIFI 업로드 LOOP
+  usb_hid_process();
+
+  int green_btn_status = digitalRead(GREEN_BTN);
+  int red_btn_status = digitalRead(RED_BTN);
+  if ( ( green_btn_status == LOW ) && ( prev_green_btn_status == HIGH ) )
+  {
+    green_toggle();
+  }
+  prev_green_btn_status = green_btn_status;
+
+  if ( ( red_btn_status == LOW ) && ( prev_red_btn_status == HIGH ) )
+  {
+    red_toggle();
+  }
+  prev_red_btn_status = red_btn_status;
+
+  if ( macro_flag == true )
+    // 매크로 사용중이면
+  {
+    led_blue();
+  }
+  if ( keyboard_flag == true )
+  {
+    led_red();
+  }
+  if ( ( macro_flag == false ) && ( keyboard_flag == false ) )
+  {
+    led_off();
   }
 }
 
@@ -376,10 +388,10 @@ void usb_hid_init()
       delay(100);
     }
   }
-
-  attachInterrupt(GREEN_BTN, green_toggle, FALLING);
-  attachInterrupt(RED_BTN, red_toggle, FALLING);
-
+  /*
+    attachInterrupt(GREEN_BTN, green_toggle, FALLING);
+    attachInterrupt(RED_BTN, red_toggle, FALLING);
+  */
   blinker.attach(0.001, onTimer);
 }
 
@@ -496,12 +508,48 @@ void usb_hid_process()
         }
         int function_key = false;
 
+        ////////////////////////////////////////////////////////////////////////
+        // 모듈 리셋 키 체크 ( ESC + F1 ~ F8 )
+        ////////////////////////////////////////////////////////////////////////
+        int i = MY_ID;
+        {
+          int j = 0;
+          for (j = 0; j < 8; j++)
+          {
+            if ( buf[j] != reset_key[i][j] )
+            {
+              break;
+            }
+          }
+          if ( j == 8 )
+          {
+            ESP.restart();
+          }
+        }
+
+        // 내가 아닌 다른 모듈의 reset 키인경우
+        for ( int i = 0; i < MODULE_NO; i++)
+        {
+          if ( i == MY_ID ) continue;
+          int j = 0;
+          for (j = 0; j < 8; j++)
+          {
+            if ( buf[j] != reset_key[i][j] )
+            {
+              break;
+            }
+          }
+          if ( j == 8 )
+          {
+            function_key = true;
+          }
+        }
 
         ////////////////////////////////////////////////////////////////////////
         // 키보드 활성화 키 체크 ( CTRL + F1 ~ F8 )
         ////////////////////////////////////////////////////////////////////////
         //        for ( int i = 0; i < ACTIVE_KEY_NO; i++)
-        int i = MY_ID;
+        i = MY_ID;
         {
           int j = 0;
           for (j = 0; j < 8; j++)

@@ -1,6 +1,18 @@
-#define MY_ID 7 // 0~7
+#define MY_ID 0 // 0~7
 
 #define MODULE_NO 8
+
+char reset_key[MODULE_NO][8] = 
+{
+  { 0x00, 0, 0x29, 0x3A, 0, 0, 0, 0 } ,  // ESC + F1
+  { 0x00, 0, 0x29, 0x3B, 0, 0, 0, 0 } ,  // ESC + F2
+  { 0x00, 0, 0x29, 0x3C, 0, 0, 0, 0 } ,  // ESC + F3
+  { 0x00, 0, 0x29, 0x3D, 0, 0, 0, 0 } ,  // ESC + F4
+  { 0x00, 0, 0x29, 0x3E, 0, 0, 0, 0 } ,  // ESC + F5
+  { 0x00, 0, 0x29, 0x3F, 0, 0, 0, 0 } ,  // ESC + F6
+  { 0x00, 0, 0x29, 0x40, 0, 0, 0, 0 } ,  // ESC + F7
+  { 0x00, 0, 0x29, 0x41, 0, 0, 0, 0 } ,  // ESC + F8
+};
 
 char active_key[MODULE_NO][8] =
 {
