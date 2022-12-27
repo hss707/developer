@@ -1,4 +1,4 @@
-#define MY_ID 3 // 0~7
+#define MY_ID 0 // 0~7
 
 #define MODULE_NO 8
 
